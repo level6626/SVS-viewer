@@ -1,0 +1,15 @@
+name: napari-svsotfhed
+display_name: SVS On-The-Fly Hed
+# use 'hidden' to remove plugin from napari hub search results
+visibility: public
+# see https://napari.org/stable/plugins/manifest.html for valid categories
+categories: ["Annotation", "Segmentation", "Acquisition"]
+contributions:
+  commands:
+    - id: napari-svsotfhed.get_reader
+      python_name: napari_svsotfhed._reader:napari_get_reader
+      title: Open data with SVS On-The-Fly Hed
+  readers:
+    - command: napari-svsotfhed.get_reader
+      accepts_directories: false
+      filename_patterns: ['*.svs']
