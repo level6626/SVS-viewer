@@ -1,9 +1,6 @@
 """
-This module is an example of a barebones numpy reader plugin for napari.
-
-It implements the Reader specification, but your plugin may choose to
-implement multiple readers or even other plugin contributions. see:
-https://napari.org/stable/plugins/guides.html?#readers
+This module implements a reader plugin for napari that reads SVS files and
+displays the image pyramid and the HED mask pyramid.
 """
 
 import numpy as np
@@ -18,8 +15,8 @@ def napari_get_reader(path):
 
     Parameters
     ----------
-    path : str or list of str
-        Path to file, or list of paths.
+    path : str
+        Path to file.
 
     Returns
     -------
@@ -35,7 +32,6 @@ def napari_get_reader(path):
     if path.endswith(".svs"):
         return reader_function
 
-    # otherwise we return the *function* that can read ``path``.
     return None
 
 
@@ -48,8 +44,8 @@ def reader_function(path):
 
     Parameters
     ----------
-    path : str or list of str
-        Path to file, or list of paths.
+    path : str
+        Path to file.
 
     Returns
     -------
@@ -63,6 +59,7 @@ def reader_function(path):
     """
     tile_size = 512
     overlap = 0
+    # conv matrix
     hed_from_rgb = np.array(
         [
             [1.87798274, -1.00767869, -0.55611582],
@@ -83,13 +80,10 @@ def reader_function(path):
         return np.array(tile).transpose((1, 0, 2))
 
     @dask.delayed(pure=True)
-    def get_tile_hed(level, column, row, num_levels, threshold=0.05):
-        tile = np.array(gen.get_tile(level, (column, row))).transpose(
-            (1, 0, 2)
-        )
+    def get_tile_hed(tile, level, num_levels, threshold=0.05):
         if level == num_levels - 1:
-            tile = tile / 255.0
-            hed = separate_stains(tile[:, :, :3], hed_from_rgb)
+            tile_scaled = tile / 255.0
+            hed = separate_stains(tile_scaled[:, :, :3], hed_from_rgb)
             mask = np.zeros((*tile.shape[:2], 3), dtype=np.uint8)
             mask[hed > threshold] = 255
             mask[:, :, 1:] = 0
@@ -97,23 +91,8 @@ def reader_function(path):
             mask = np.zeros((*tile.shape[:2], 3), dtype=np.uint8)
         return mask
 
-    # @dask.delayed(pure=True)
-    # def get_tile_hed(level, column, row, num_levels, threshold=0.05):
-    #     tile = np.array(gen.get_tile(level, (column, row))).transpose(
-    #         (1, 0, 2)
-    #     )
-    #     if level == num_levels - 1:
-    #         tile = tile / 255.0
-    #         hed = separate_stains(tile[:, :, :3], hed_from_rgb)
-    #         mask = np.zeros(tile.shape[:2], dtype=np.uint8)
-    #         mask[hed[:, :, 0] > threshold] = 1
-    #     else:
-    #         mask = np.zeros(tile.shape[:2], dtype=np.uint8)
-    #     return mask
-
     myPyramid = []
     myPyramidHed = []
-    hedMask = []
     # Loop through each level and read the image data
     for level in reversed(range(num_levels)):
         # Get dimensions for the current level
@@ -132,67 +111,36 @@ def reader_function(path):
         rows = range(n_tiles_y - 1)
         cols = range(n_tiles_x - 1)
 
-        arr = da.concatenate(
-            [
-                da.concatenate(
-                    [
-                        da.from_delayed(
-                            get_tile(level, col, row),
-                            sample_tile_shape,
-                            np.uint8,
-                        )
-                        for row in rows
-                    ],
-                    allow_unknown_chunksizes=False,
-                    axis=1,
+        col_tile = []
+        col_mask = []
+        for col in cols:
+            row_tile = []
+            row_mask = []
+            for row in rows:
+                tile = get_tile(level, col, row)
+                tile_mask = get_tile_hed(
+                    tile, level, num_levels, threshold=0.05
                 )
-                for col in cols
-            ],
-            allow_unknown_chunksizes=False,
-        )
-
-        # if level == num_levels - 1:
-        #     for col in cols:
-        #         row_mask = []
-        #         for row in rows:
-        #             tile_mask = da.from_delayed(
-        #                 get_tile_hed(
-        #                     level, col, row, num_levels, threshold=0.05
-        #                 ),
-        #                 sample_tile_shape[:2],
-        #                 np.uint8,
-        #             )
-        #             row_mask.append(tile_mask)
-        #         row_mask = da.concatenate(
-        #             row_mask, axis=1, allow_unknown_chunksizes=False
-        #         )
-        #         hedMask.append(row_mask)
-        #     hedMask = da.concatenate(hedMask, allow_unknown_chunksizes=False)
-
-        mask = da.concatenate(
-            [
-                da.concatenate(
-                    [
-                        da.from_delayed(
-                            get_tile_hed(
-                                level, col, row, num_levels, threshold=0.05
-                            ),
-                            sample_tile_shape,
-                            np.uint8,
-                        )
-                        for row in rows
-                    ],
-                    allow_unknown_chunksizes=False,
-                    axis=1,
+                row_tile.append(
+                    da.from_delayed(tile, sample_tile_shape, np.uint8)
                 )
-                for col in cols
-            ],
-            allow_unknown_chunksizes=False,
+                row_mask.append(
+                    da.from_delayed(tile_mask, sample_tile_shape, np.uint8)
+                )
+            row_tile = da.concatenate(
+                row_tile, axis=1, allow_unknown_chunksizes=False
+            )
+            row_mask = da.concatenate(
+                row_mask, axis=1, allow_unknown_chunksizes=False
+            )
+            col_tile.append(row_tile)
+            col_mask.append(row_mask)
+        myPyramid.append(
+            da.concatenate(col_tile, allow_unknown_chunksizes=False)
         )
-
-        # Append the numpy array to the list
-        myPyramid.append(arr)
-        myPyramidHed.append(mask)
+        myPyramidHed.append(
+            da.concatenate(col_mask, allow_unknown_chunksizes=False)
+        )
 
     # optional kwargs for the corresponding viewer.add_* method
     img_kwargs = {

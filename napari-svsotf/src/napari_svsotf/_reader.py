@@ -1,9 +1,6 @@
 """
-This module is an example of a barebones numpy reader plugin for napari.
-
-It implements the Reader specification, but your plugin may choose to
-implement multiple readers or even other plugin contributions. see:
-https://napari.org/stable/plugins/guides.html?#readers
+This module implements a reader plugin for napari that reads SVS files using
+the openslide library and dask lazy loading.
 """
 
 import numpy as np
@@ -18,8 +15,8 @@ def napari_get_reader(path):
 
     Parameters
     ----------
-    path : str or list of str
-        Path to file, or list of paths.
+    path : str
+        Path to file.
 
     Returns
     -------
@@ -35,7 +32,6 @@ def napari_get_reader(path):
     if path.endswith(".svs"):
         return reader_function
 
-    # otherwise we return the *function* that can read ``path``.
     return None
 
 
@@ -48,8 +44,8 @@ def reader_function(path):
 
     Parameters
     ----------
-    path : str or list of str
-        Path to file, or list of paths.
+    path : str
+        Path to file
 
     Returns
     -------
@@ -70,6 +66,7 @@ def reader_function(path):
     )
     num_levels = gen.level_count
 
+    # lazy load the tile data
     @dask.delayed(pure=True)
     def get_tile(level, column, row):
         tile = gen.get_tile(level, (column, row))
@@ -121,6 +118,6 @@ def reader_function(path):
         "multiscale": True,
         "contrast_limits": [0, 255],
     }
-    layer_type = "image"  # optional, default is "image"
+    layer_type = "image"
 
     return [(myPyramid, add_kwargs, layer_type)]
