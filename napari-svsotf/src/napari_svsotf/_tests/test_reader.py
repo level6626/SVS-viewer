@@ -1,6 +1,6 @@
 import numpy as np
 
-from napari_otfsvs import napari_get_reader
+from napari_svsotf import napari_get_reader
 
 
 # tmp_path is a pytest fixture

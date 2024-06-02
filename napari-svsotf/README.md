@@ -1,13 +1,13 @@
-# napari-otfsvs
+# napari-svsotf
 
-[![License BSD-3](https://img.shields.io/pypi/l/napari-otfsvs.svg?color=green)](https://github.com/githubuser/napari-otfsvs/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/napari-otfsvs.svg?color=green)](https://pypi.org/project/napari-otfsvs)
-[![Python Version](https://img.shields.io/pypi/pyversions/napari-otfsvs.svg?color=green)](https://python.org)
-[![tests](https://github.com/githubuser/napari-otfsvs/workflows/tests/badge.svg)](https://github.com/githubuser/napari-otfsvs/actions)
-[![codecov](https://codecov.io/gh/githubuser/napari-otfsvs/branch/main/graph/badge.svg)](https://codecov.io/gh/githubuser/napari-otfsvs)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-otfsvs)](https://napari-hub.org/plugins/napari-otfsvs)
+[![License BSD-3](https://img.shields.io/pypi/l/napari-svsotf.svg?color=green)](https://github.com/githubuser/napari-svsotf/raw/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/napari-svsotf.svg?color=green)](https://pypi.org/project/napari-svsotf)
+[![Python Version](https://img.shields.io/pypi/pyversions/napari-svsotf.svg?color=green)](https://python.org)
+[![tests](https://github.com/githubuser/napari-svsotf/workflows/tests/badge.svg)](https://github.com/githubuser/napari-svsotf/actions)
+[![codecov](https://codecov.io/gh/githubuser/napari-svsotf/branch/main/graph/badge.svg)](https://codecov.io/gh/githubuser/napari-svsotf)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-svsotf)](https://napari-hub.org/plugins/napari-svsotf)
 
-On-The-Fly SVS Reader
+an On-The-Fly SVS Reader
 
 ----------------------------------
 
@@ -23,9 +23,9 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
-You can install `napari-otfsvs` via [pip]:
+You can install `napari-svsotf` via [pip]:
 
-    pip install napari-otfsvs
+    pip install napari-svsotf
 
 
 
@@ -38,7 +38,7 @@ the coverage at least stays the same before you submit a pull request.
 ## License
 
 Distributed under the terms of the [BSD-3] license,
-"napari-otfsvs" is free and open source software
+"napari-svsotf" is free and open source software
 
 ## Issues
 

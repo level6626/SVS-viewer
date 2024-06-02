@@ -1,12 +1,12 @@
 [project]
-name = "napari-otfsvs"
+name = "napari-svsotf"
 dynamic = ["version"]
-description = "On-The-Fly SVS Reader"
+description = "an On-The-Fly SVS Reader"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
   {name = "Yuchen Zhang"},
-  {email = "yuchen.zhang@utsouthwestern.edu"},
+  {email = "yourname@example.com"},
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -36,7 +36,7 @@ testing = [
 ]
 
 [project.entry-points."napari.manifest"]
-napari-otfsvs = "napari_otfsvs:napari.yaml"
+napari-svsotf = "napari_svsotf:napari.yaml"
 
 
 
@@ -48,7 +48,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.dynamic]
-version = {attr = "napari_otfsvs.__init__.__version__"}
+version = {attr = "napari_svsotf.__init__.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
