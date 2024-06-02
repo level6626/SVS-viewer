@@ -84,9 +84,10 @@ def reader_function(path):
         if level == num_levels - 1:
             tile_norm = normalize(tile[:, :, :3])
             labels, _ = model.predict_instances(tile_norm)
+            labels = render_label(labels)
         else:
-            labels = np.zeros((*tile.shape[:2], 4))
-        return render_label(labels)
+            labels = np.zeros((*tile.shape[:2], 4), np.float32)
+        return labels
 
     myPyramid = []
     myPyramidPred = []
@@ -120,7 +121,9 @@ def reader_function(path):
                     da.from_delayed(tile, sample_tile_shape, np.uint8)
                 )
                 row_pred.append(
-                    da.from_delayed(tile_pred, (*sample_tile_shape[:2], 4))
+                    da.from_delayed(
+                        tile_pred, (*sample_tile_shape[:2], 4), np.float32
+                    )
                 )
             row_tile = da.concatenate(
                 row_tile, axis=1, allow_unknown_chunksizes=False
