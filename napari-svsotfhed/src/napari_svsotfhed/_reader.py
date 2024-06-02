@@ -97,8 +97,23 @@ def reader_function(path):
             mask = np.zeros((*tile.shape[:2], 3), dtype=np.uint8)
         return mask
 
+    # @dask.delayed(pure=True)
+    # def get_tile_hed(level, column, row, num_levels, threshold=0.05):
+    #     tile = np.array(gen.get_tile(level, (column, row))).transpose(
+    #         (1, 0, 2)
+    #     )
+    #     if level == num_levels - 1:
+    #         tile = tile / 255.0
+    #         hed = separate_stains(tile[:, :, :3], hed_from_rgb)
+    #         mask = np.zeros(tile.shape[:2], dtype=np.uint8)
+    #         mask[hed[:, :, 0] > threshold] = 1
+    #     else:
+    #         mask = np.zeros(tile.shape[:2], dtype=np.uint8)
+    #     return mask
+
     myPyramid = []
     myPyramidHed = []
+    hedMask = []
     # Loop through each level and read the image data
     for level in reversed(range(num_levels)):
         # Get dimensions for the current level
@@ -135,6 +150,25 @@ def reader_function(path):
             ],
             allow_unknown_chunksizes=False,
         )
+
+        # if level == num_levels - 1:
+        #     for col in cols:
+        #         row_mask = []
+        #         for row in rows:
+        #             tile_mask = da.from_delayed(
+        #                 get_tile_hed(
+        #                     level, col, row, num_levels, threshold=0.05
+        #                 ),
+        #                 sample_tile_shape[:2],
+        #                 np.uint8,
+        #             )
+        #             row_mask.append(tile_mask)
+        #         row_mask = da.concatenate(
+        #             row_mask, axis=1, allow_unknown_chunksizes=False
+        #         )
+        #         hedMask.append(row_mask)
+        #     hedMask = da.concatenate(hedMask, allow_unknown_chunksizes=False)
+
         mask = da.concatenate(
             [
                 da.concatenate(
